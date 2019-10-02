@@ -10,4 +10,5 @@ public interface EmployeeRepo extends CrudRepository<EmployeeInformation, Intege
     List<EmployeeInformation> findAll();
     EmployeeInformation findByEmployeeId(int id);
     List<EmployeeInformation> findAllByManagerIdAndEmployeeIdIsNot(int parentId,int empId);
+    EmployeeInformation deleteEmployeeInformationByEmployeeId(int empId);
 }

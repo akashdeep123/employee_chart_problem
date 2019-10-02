@@ -67,5 +67,14 @@ public class ControllerClass {
         return emp;
     }
 
+    //method to delete an employee form the organization
+    @RequestMapping(value = "/employee", method = RequestMethod.DELETE)
+    public void deleteEmployee(int empId){
+
+        //EmployeeInformation employeeInformation=new EmployeeInformation();
+        employeeRepo.deleteEmployeeInformationByEmployeeId(empId);
+
+    }
+
 
 }
