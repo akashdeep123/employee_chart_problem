@@ -9,6 +9,10 @@ import java.util.List;
 public interface EmployeeRepo extends CrudRepository<EmployeeInformation, Integer> {
     List<EmployeeInformation> findAll();
     EmployeeInformation findByEmployeeId(int id);
+    List<EmployeeInformation> findAllByManagerId(int mid);
+    List<EmployeeInformation> findAllByOrderByDesignationId_levelAscEmployeeNameAsc();
     List<EmployeeInformation> findAllByManagerIdAndEmployeeIdIsNot(int parentId,int empId);
-    EmployeeInformation deleteEmployeeInformationByEmployeeId(int empId);
+    EmployeeInformation findEmployeeInformationByEmployeeId(int empId);
+    EmployeeInformation findByManagerId(int mId);
+
 }

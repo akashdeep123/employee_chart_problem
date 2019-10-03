@@ -1,10 +1,20 @@
 package com.example.employee_chart_temp;
 
 public class EmployeePost {
-    private String empName;
-    private int empId;
-    private int managerId;
-    private String designationName;
+    private Integer empId=null;
+    //
+    private String empName=null;
+    private Integer managerId=null;
+    private String designationName=null;
+    private boolean replace=false;
+
+    public boolean isReplace() {
+        return replace;
+    }
+
+    public void setReplace(boolean replace) {
+        this.replace = replace;
+    }
 
     public String getEmpName() {
         return empName;
