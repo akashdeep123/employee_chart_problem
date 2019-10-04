@@ -64,7 +64,7 @@ public class ControllerClass {
         //code to replace
         if(employeePost.isReplace()){
 
-            EmployeeInformation empToReplace = employeeRepo.findEmployeeInformationByEmployeeId(empId);
+            EmployeeInformation empToReplace = employeeRepo.findByEmployeeId(empId);
             int managerId = empToReplace.getManagerId();
             employeeRepo.delete(empToReplace);//delete information of employee to be replaced.
 
@@ -84,31 +84,80 @@ public class ControllerClass {
         //code to update the information of existing employee
         else{
             EmployeeInformation empToUpdate = employeeRepo.findByEmployeeId(empId);
-            if(empToUpdate.getManagerId()!=null){
+            if(employeePost.getManagerId()!=null){
                 //find the employee with given manager id
-                EmployeeInformation temp=employeeRepo.findByEmployeeId(empToUpdate.getManagerId());
+                EmployeeInformation temp=employeeRepo.findByEmployeeId(employeePost.getManagerId());
                 //now find level of the employee with given manager id
-                float levelOfManager = designationRepo.findByDesignation(temp.getDesignationId().getDesignation()).getLevel();
-                //find level of employee according to given information
-                float newLevel = designationRepo.findByDesignation(empToUpdate.getDesignation()).getLevel();
+                float levelOfNewManager = designationRepo.findByDesignation(temp.getDesignationId().getDesignation()).getLevel();
+
+                //find level of current employee
+                float currLevel =designationRepo.findByDesignation(empToUpdate.getDesignation()).getLevel();
+
+                System.out.print("working : "+currLevel+"   "+levelOfNewManager);
 
                 //if level of the employee is greater or equal to the level of manager
-                if(newLevel >= levelOfManager){
+                if(currLevel > levelOfNewManager){
+                    empToUpdate.setManagerId(empToUpdate.getManagerId());
+                    employeeRepo.save(empToUpdate);
+                   // return new ResponseEntity<>(empToUpdate,HttpStatus.OK);
+                }
+                else{
+                    return new ResponseEntity<>("bad request",HttpStatus.BAD_REQUEST);
+                }
+            }
+            if(employeePost.getDesignationName()!=null){
+                //get current level of employee
+                float currLevel = designationRepo.findByDesignation(empToUpdate.getDesignation()).getLevel();
+                //find the level of new designation
+                float newLevel = designationRepo.findByDesignation(employeePost.getDesignationName()).getLevel();
+                if(newLevel > currLevel){
                     return new ResponseEntity<>("bad request",HttpStatus.BAD_REQUEST);
                 }
                 else{
-                    return new ResponseEntity<>("ok",HttpStatus.OK);
+                    //empToUpdate.setDesignationId();
+                    employeeRepo.save(empToUpdate);
                 }
             }
-            if(empToUpdate.getEmployeeName()!=null){
-                
+            if(employeePost.getEmpName()!=null){
+                empToUpdate.setEmployeeName(employeePost.getEmpName());
+                employeeRepo.save(empToUpdate);
             }
+
+            //return updated information
+            return new ResponseEntity<>(empToUpdate,HttpStatus.OK);
         }
 
         return new ResponseEntity<>(emp,HttpStatus.OK);
     }
 
+    //method to add an employee to the organization
+    @PostMapping("/employee")
+    public ResponseEntity addEmployee(@RequestBody EmployeePost employeePost){
+        EmployeeInformation empToAdd =new EmployeeInformation();
+        if(employeePost.getEmpName()!=null && employeePost.getDesignationName()!=null && employeePost.getManagerId()!=null){
+            //find employee to be manager
+            EmployeeInformation temp = employeeRepo.findByEmployeeId(employeePost.getManagerId());
+            //find level of manager
+            float levelOfManager = designationRepo.findByDesignation(temp.designationId.getDesignation()).getLevel();
+            //find level of employee
+            float empLevel = designationRepo.findByDesignation(employeePost.getDesignationName()).getLevel();
+            if(levelOfManager >= empLevel){
+                return new ResponseEntity("bad request",HttpStatus.BAD_REQUEST);
+            }
+            else{
+                empToAdd.setEmployeeName(employeePost.getEmpName());
+                empToAdd.setManagerId(employeePost.getManagerId());
+                empToAdd.setDesignationId(designationRepo.findByDesignation(employeePost.getDesignationName()));
+                employeeRepo.save(empToAdd);
+            }
 
+        }
+        else{
+            return new ResponseEntity<>("Enter all the fields",HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(empToAdd,HttpStatus.OK);
+    }
 
     //method to delete an employee form the organization
     @DeleteMapping("/employee/{empId}")

@@ -24,7 +24,7 @@ public class EmployeePost {
         this.empName = empName;
     }
 
-    public int getEmpId() {
+    public Integer getEmpId() {
         return empId;
     }
 
@@ -32,7 +32,7 @@ public class EmployeePost {
         this.empId = empId;
     }
 
-    public int getManagerId() {
+    public Integer getManagerId() {
         return managerId;
     }
 
