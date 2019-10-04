@@ -75,7 +75,7 @@ public class ControllerClass {
                     employeeRepo.save(emi);
             }
 
-            //update remainig information of new employee
+            //update remaining information of new employee
             emp.designationId = designationRepo.findByDesignation(employeePost.getDesignationName());
             emp.setEmployeeName(employeePost.getEmpName());
             emp.setManagerId(managerId);
@@ -161,10 +161,33 @@ public class ControllerClass {
 
     //method to delete an employee form the organization
     @DeleteMapping("/employee/{empId}")
-    public void deleteEmployee(@PathVariable("empId") int empId){
+    public ResponseEntity deleteEmployee(@PathVariable("empId") int empId){
 
-        //EmployeeInformation employeeInformation=new EmployeeInformation();
-        //employeeRepo.deleteByEmployeeId(empId);
+        EmployeeInformation empToDelete = employeeRepo.findByEmployeeId(empId);
+        //if employee to delete is director
+        if(empToDelete.getManagerId()==null){
+            int count=0;
+            for(EmployeeInformation temp : employeeRepo.findAllByManagerId(empId)){
+                count++;
+            }
+            if(count==0){
+                employeeRepo.delete(empToDelete);
+                return new ResponseEntity<>(empToDelete,HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>("director has employes working under him",HttpStatus.BAD_REQUEST);
+            }
+        }
+        //if employee to delete is not director
+        else{
+            List<EmployeeInformation> childEmployes = employeeRepo.findAllByManagerId(empId);
+            for(EmployeeInformation updateChild : childEmployes){
+                updateChild.setManagerId(empToDelete.getManagerId());
+                employeeRepo.save(updateChild);
+            }
+            employeeRepo.delete(empToDelete);
+            return new ResponseEntity<>(empToDelete,HttpStatus.OK);
+        }
 
     }
 
