@@ -36,7 +36,7 @@ public class EmployeePost {
         return managerId;
     }
 
-    public void setManagerId(int managerId) {
+    public void setManagerId(Integer managerId) {
         this.managerId = managerId;
     }
 

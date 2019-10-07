@@ -23,7 +23,10 @@ public class ControllerClass {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity showAllEmployees(){
         List<EmployeeInformation> employees = employeeRepo.findAllByOrderByDesignationId_levelAscEmployeeNameAsc();
-        return new ResponseEntity<>(employees, HttpStatus.OK);
+        if(employees.size()>0)
+            return new ResponseEntity<>(employees, HttpStatus.OK);
+        else
+            return new ResponseEntity<>("No Record Found",HttpStatus.NOT_FOUND);
     }
 
     //method to show all the required information of a particular employee i.e. GET(id)
@@ -54,29 +57,35 @@ public class ControllerClass {
 
     //method to replace an employee with new employee and to update the information of existing employee i.e. PUT
     @RequestMapping(value = "/employee/{empId}", method = RequestMethod.PUT)
-    public ResponseEntity allEmployee(@PathVariable("empId") int empId, @RequestBody EmployeePost employeePost){
+    public ResponseEntity addEmployee(@PathVariable("empId") int empId, @RequestBody EmployeePost employeePost){
 
         EmployeeInformation emp = new EmployeeInformation();
-
         //code to replace
         if(employeePost.isReplace()){
 
             EmployeeInformation empToReplace = employeeRepo.findByEmployeeId(empId);
-            int managerId = empToReplace.getManagerId();
-            employeeRepo.delete(empToReplace);//delete information of employee to be replaced.
+            Integer managerId = empToReplace.getManagerId();
 
-            //change manager id for the employees that were working under employee to be replaced.
-            List<EmployeeInformation> children=employeeRepo.findAllByManagerId(empId);
-            for(EmployeeInformation emi : children){
+            if(designationRepo.findByDesignation(employeePost.getDesignationName()).getLevel() <= designationRepo.findByDesignation(empToReplace.designationId.getDesignation()).getLevel()){
+                employeeRepo.delete(empToReplace);//delete information of employee to be replaced.
+
+                //change manager id for the employees that were working under employee to be replaced.
+                List<EmployeeInformation> children=employeeRepo.findAllByManagerId(empId);
+                for(EmployeeInformation emi : children){
                     emi.setManagerId(empId);
                     employeeRepo.save(emi);
-            }
+                }
 
-            //update remaining information of new employee
-            emp.designationId = designationRepo.findByDesignation(employeePost.getDesignationName());
-            emp.setEmployeeName(employeePost.getEmpName());
-            emp.setManagerId(managerId);
-            employeeRepo.save(emp);
+                //update remaining information of new employee
+                emp.designationId = designationRepo.findByDesignation(employeePost.getDesignationName());
+                emp.setEmployeeName(employeePost.getEmpName());
+                emp.setManagerId(managerId);
+                employeeRepo.save(emp);
+
+            }
+            else{
+                return new ResponseEntity<>("replacement not possible", HttpStatus.BAD_REQUEST);
+            }
         }
         //code to update the information of existing employee
         else{
@@ -131,11 +140,30 @@ public class ControllerClass {
     @PostMapping("/employee")
     public ResponseEntity addEmployee(@RequestBody EmployeePost employeePost){
         EmployeeInformation empToAdd =new EmployeeInformation();
-        if(employeePost.getEmpName()!=null && employeePost.getDesignationName()!=null && employeePost.getManagerId()!=null){
+        //if there is no employee in the list, then first employee must be director
+        if(employeeRepo.findAll().size() == 0){
+            if(employeePost.getDesignationName().equalsIgnoreCase("Director")){
+                if(employeePost.getManagerId() == null)
+                {
+                //    empToAdd.setManagerId(null);
+                    empToAdd.setEmployeeName(employeePost.getEmpName());
+                    empToAdd.setDesignationId(designationRepo.findByDesignation(employeePost.getDesignationName()));
+                    employeeRepo.save(empToAdd);
+                }
+                else{
+                    return new ResponseEntity<>(employeePost, HttpStatus.BAD_REQUEST);
+                }
+
+            }
+            else {
+                return new ResponseEntity<>("first employee must be director",HttpStatus.BAD_REQUEST);
+            }
+        }
+        else if(employeePost.getEmpName()!=null && employeePost.getDesignationName()!=null && employeePost.getManagerId()!=null && (!employeePost.getDesignationName().equalsIgnoreCase("director"))){
             //find employee to be manager
             EmployeeInformation temp = employeeRepo.findByEmployeeId(employeePost.getManagerId());
             //if employee to be manager is intern, then return
-            if(temp.designationId.getDesignation().equals("Intern")){
+            if(temp.designationId.getDesignation().equalsIgnoreCase("Intern")){
                 return new ResponseEntity<>("intern can not be manager",HttpStatus.BAD_REQUEST);
             }
             //find level of manager
@@ -154,7 +182,7 @@ public class ControllerClass {
 
         }
         else{
-            return new ResponseEntity<>("Enter all the fields",HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Invalid information",HttpStatus.BAD_REQUEST);
         }
 
         return new ResponseEntity<>(empToAdd,HttpStatus.OK);
