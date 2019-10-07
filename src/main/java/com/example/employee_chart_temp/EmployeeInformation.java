@@ -11,11 +11,9 @@ import javax.persistence.*;
 public class EmployeeInformation {
 
     @Id
-    //@Column(name = "emp_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int employeeId;
 
-    //@Column(name = "emp_name")
     private String employeeName;
 
 
@@ -32,8 +30,6 @@ public class EmployeeInformation {
     DesignationInformation designationId;
 
     @Nullable
-    //@Column(name="m_id")
-    //@JsonIgnoreProperties(value= { "managerId" })
     private Integer managerId;
 
     public int getEmployeeId() {

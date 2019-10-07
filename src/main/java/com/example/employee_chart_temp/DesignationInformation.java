@@ -10,15 +10,10 @@ import javax.persistence.*;
 public class DesignationInformation {
 
     @Id
-    //@Column(name = "d_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private int designationId;
 
-   // @Column(name = "desg")
     private String designation;
-
-    //@Column(name = "level")
 
     private float level;
 

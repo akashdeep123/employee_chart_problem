@@ -19,15 +19,12 @@ public class ControllerClass {
     @Autowired
     DesignationRepo designationRepo;
 
-
-
     //method to show all employees i.e GET(all)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity showAllEmployee(){
+    public ResponseEntity showAllEmployees(){
         List<EmployeeInformation> employees = employeeRepo.findAllByOrderByDesignationId_levelAscEmployeeNameAsc();
         return new ResponseEntity<>(employees, HttpStatus.OK);
     }
-
 
     //method to show all the required information of a particular employee i.e. GET(id)
     @GetMapping("/employee/{aid}")
@@ -137,6 +134,10 @@ public class ControllerClass {
         if(employeePost.getEmpName()!=null && employeePost.getDesignationName()!=null && employeePost.getManagerId()!=null){
             //find employee to be manager
             EmployeeInformation temp = employeeRepo.findByEmployeeId(employeePost.getManagerId());
+            //if employee to be manager is intern, then return
+            if(temp.designationId.getDesignation().equals("Intern")){
+                return new ResponseEntity<>("intern can not be manager",HttpStatus.BAD_REQUEST);
+            }
             //find level of manager
             float levelOfManager = designationRepo.findByDesignation(temp.designationId.getDesignation()).getLevel();
             //find level of employee

@@ -2,7 +2,7 @@ package com.example.employee_chart_temp;
 
 public class EmployeePost {
     private Integer empId=null;
-    //
+
     private String empName=null;
     private Integer managerId=null;
     private String designationName=null;
