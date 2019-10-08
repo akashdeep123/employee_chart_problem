@@ -21,6 +21,7 @@ public class EmployeeServices {
     @Autowired
     DesignationRepo designationRepo;
 
+
     public ResponseEntity returnAllEmployee(){
         List<EmployeeInformation> employees = employeeRepo.findAllByOrderByDesignationId_levelAscEmployeeNameAsc();
         if(employees.size()>0)
@@ -30,6 +31,10 @@ public class EmployeeServices {
     }
 
     public Map get(int aid){
+        //if user enters invalid employee id
+        if(employeeRepo.findByEmployeeId(aid) != null){
+            return null;
+        }
         Map<String,Object> map=new LinkedHashMap<>();
         List<EmployeeInformation> colleagues=null;
         EmployeeInformation manager=null;

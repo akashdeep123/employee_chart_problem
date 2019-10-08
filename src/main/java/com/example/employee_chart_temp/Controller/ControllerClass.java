@@ -1,22 +1,19 @@
 package com.example.employee_chart_temp.Controller;
 
-import com.example.employee_chart_temp.Entities.EmployeeInformation;
 import com.example.employee_chart_temp.Repositories.DesignationRepo;
 import com.example.employee_chart_temp.Repositories.EmployeeRepo;
 import com.example.employee_chart_temp.Services.EmployeeServices;
-import com.example.employee_chart_temp.Services.Validations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
 
 @RestController
 @RequestMapping("/")
 public class ControllerClass {
+
     @Autowired
     EmployeeRepo employeeRepo;
     @Autowired
@@ -32,10 +29,13 @@ public class ControllerClass {
 
     //method to show all the required information of a particular employee i.e. GET(id)
     @GetMapping("/employee/{aid}")
-    public Map get(@PathVariable("aid") int aid){
+    public ResponseEntity get(@PathVariable("aid") int aid){
 
         Map map = employeeServices.get(aid);
-        return map;
+        if(map == null){
+            return new ResponseEntity("Employee record not found",HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity(map,HttpStatus.OK);
 
     }
 
