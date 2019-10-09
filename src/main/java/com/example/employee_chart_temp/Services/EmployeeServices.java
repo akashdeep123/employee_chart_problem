@@ -20,7 +20,8 @@ public class EmployeeServices {
     EmployeeRepo employeeRepo;
     @Autowired
     DesignationRepo designationRepo;
-
+    @Autowired
+    Validations validations;
 
     public ResponseEntity returnAllEmployee(){
         List<EmployeeInformation> employees = employeeRepo.findAllByOrderByDesignationId_levelAscEmployeeNameAsc();
@@ -32,7 +33,7 @@ public class EmployeeServices {
 
     public Map get(int aid){
         //if user enters invalid employee id
-        if(employeeRepo.findByEmployeeId(aid) != null){
+        if(! validations.isEmpIdValid(aid)){
             return null;
         }
         Map<String,Object> map=new LinkedHashMap<>();
@@ -58,11 +59,22 @@ public class EmployeeServices {
     }
 
     public ResponseEntity replace(int empId, EmployeePost employeePost){
+        if(! validations.isEmpIdValid(empId)){
+            return new ResponseEntity<>("employee not found",HttpStatus.BAD_REQUEST);
+        }else{
+            //if employee to be replaced with is not new employee, i.e. replacement can;t be done with the existing employee
+            if(validations.isEmpIdValid(employeePost.getEmpId())){
+                return new ResponseEntity<>("can't replace with the existing employee",HttpStatus.BAD_REQUEST);
+            }
+        }
+        if(!validations.isDesignationValid(employeePost.getDesignationName())){
+            return new ResponseEntity<>("designation invalid",HttpStatus.BAD_REQUEST);
+        }
         EmployeeInformation emp = new EmployeeInformation();
         EmployeeInformation empToReplace = employeeRepo.findByEmployeeId(empId);
         Integer managerId = empToReplace.getManagerId();
 
-        if(designationRepo.findByDesignation(employeePost.getDesignationName()).getLevel() <= designationRepo.findByDesignation(empToReplace.designationId.getDesignation()).getLevel()){
+        if(validations.isParentChildRelation(employeePost,empId)/*designationRepo.findByDesignation(employeePost.getDesignationName()).getLevel() <= designationRepo.findByDesignation(empToReplace.designationId.getDesignation()).getLevel()*/){
             employeeRepo.delete(empToReplace);//delete information of employee to be replaced.
 
             //change manager id for the employees that were working under employee to be replaced.
@@ -82,53 +94,69 @@ public class EmployeeServices {
         else{
             return new ResponseEntity<>("replacement not possible", HttpStatus.BAD_REQUEST);
         }
-
         return new ResponseEntity<>(emp,HttpStatus.OK);
-
     }
 
     public ResponseEntity update(int empId, EmployeePost employeePost){
+        if(! validations.isEmpIdValid(empId)){
+            return new ResponseEntity<>("employee not found",HttpStatus.BAD_REQUEST);
+        }
+
         EmployeeInformation empToUpdate = employeeRepo.findByEmployeeId(empId);
+        int mid = empToUpdate.getManagerId();
         if(employeePost.getManagerId()!=null){
-            //find the employee with given manager id
-            EmployeeInformation temp=employeeRepo.findByEmployeeId(employeePost.getManagerId());
-            //now find level of the employee with given manager id
-            float levelOfNewManager = designationRepo.findByDesignation(temp.getDesignationId().getDesignation()).getLevel();
+            //check if manager id is valid
+            if(validations.isEmpIdValid(mid)){
+                //find the employee with given manager id
+                EmployeeInformation temp=employeeRepo.findByEmployeeId(employeePost.getManagerId());
+                //now find level of the employee with given manager id
+                float levelOfNewManager = designationRepo.findByDesignation(temp.getDesignationId().getDesignation()).getLevel();
 
-            //find level of current employee
-            float currLevel =designationRepo.findByDesignation(empToUpdate.getDesignation()).getLevel();
+                //find level of current employee
+                float currLevel =designationRepo.findByDesignation(empToUpdate.getDesignation()).getLevel();
 
-            System.out.print("working : "+currLevel+"   "+levelOfNewManager);
-
-            //if level of the employee is greater or equal to the level of manager
-            if(currLevel > levelOfNewManager){
-                empToUpdate.setManagerId(employeePost.getManagerId());
-                employeeRepo.save(empToUpdate);
-                // return new ResponseEntity<>(empToUpdate,HttpStatus.OK);
+                //if level of the employee is greater or equal to the level of manager
+                if(currLevel > levelOfNewManager){
+                    empToUpdate.setManagerId(mid);
+                }
+                else{
+                    return new ResponseEntity<>("bad request",HttpStatus.BAD_REQUEST);
+                }
             }
             else{
-                return new ResponseEntity<>("bad request",HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("employee does not exist",HttpStatus.NOT_FOUND);
             }
         }
         if(employeePost.getDesignationName()!=null){
-            //get current level of employee
-            float currLevel = designationRepo.findByDesignation(empToUpdate.getDesignation()).getLevel();
-            //find the level of new designation
-            float newLevel = designationRepo.findByDesignation(employeePost.getDesignationName()).getLevel();
-            if(newLevel > currLevel){
-                return new ResponseEntity<>("bad request",HttpStatus.BAD_REQUEST);
+
+            if(validations.isDesignationValid(employeePost.getDesignationName())){
+                //get level of manager
+                float manLevel = designationRepo.findByDesignation(employeeRepo.findByEmployeeId(mid).getDesignation()).getLevel();
+                //get current level of employee
+                float currLevel = designationRepo.findByDesignation(empToUpdate.getDesignation()).getLevel();
+                //find the level of new designation
+                float newLevel = designationRepo.findByDesignation(employeePost.getDesignationName()).getLevel();
+                if(/*newLevel > currLevel*/ manLevel >= newLevel){
+                    return new ResponseEntity<>("bad request",HttpStatus.BAD_REQUEST);
+                }
+                else if(!validations.isParentValid(empId)){
+                    return new ResponseEntity("bad request",HttpStatus.BAD_REQUEST);
+                }
+                else{
+                    empToUpdate.designationId = designationRepo.findByDesignation(employeePost.getDesignationName());
+                }
             }
             else{
-                //empToUpdate.setDesignationId();
-                employeeRepo.save(empToUpdate);
+                return new ResponseEntity<>("designation not valid",HttpStatus.NOT_FOUND);
             }
+
         }
         if(employeePost.getEmpName()!=null){
             empToUpdate.setEmployeeName(employeePost.getEmpName());
-            employeeRepo.save(empToUpdate);
-        }
 
+        }
         //return updated information
+        employeeRepo.save(empToUpdate);
         return new ResponseEntity<>(empToUpdate,HttpStatus.OK);
     }
 
@@ -147,7 +175,6 @@ public class EmployeeServices {
                 else{
                     return new ResponseEntity<>(employeePost, HttpStatus.BAD_REQUEST);
                 }
-
             }
             else {
                 return new ResponseEntity<>("first employee must be director",HttpStatus.BAD_REQUEST);
@@ -184,6 +211,9 @@ public class EmployeeServices {
     }
 
     public ResponseEntity deleteAnEmployee(int empId){
+        if(!validations.isEmpIdValid(empId)){
+            return new ResponseEntity<>("employee not found",HttpStatus.BAD_REQUEST);
+        }
         EmployeeInformation empToDelete = employeeRepo.findByEmployeeId(empId);
         //if employee to delete is director
         if(empToDelete.getManagerId()==null){
