@@ -1,7 +1,7 @@
 package com.example.employee_chart_temp.Controller;
 
 public class EmployeePost {
-    private Integer empId=null;
+    //private Integer empId=null;
 
     private String empName=null;
     private Integer managerId=null;
@@ -24,13 +24,13 @@ public class EmployeePost {
         this.empName = empName;
     }
 
-    public Integer getEmpId() {
-        return empId;
-    }
-
-    public void setEmpId(int empId) {
-        this.empId = empId;
-    }
+//    public Integer getEmpId() {
+//        return empId;
+//    }
+//
+//    public void setEmpId(int empId) {
+//        this.empId = empId;
+//    }
 
     public Integer getManagerId() {
         return managerId;

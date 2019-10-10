@@ -39,9 +39,19 @@ public class ControllerClass {
 
     }
 
+
+
+    //method to add an employee to the organization
+    @PostMapping("/employee")
+    public ResponseEntity addEmployee(@RequestBody EmployeePost employeePost){
+
+        return employeeServices.addAnEmployee(employeePost);
+
+    }
+
     //method to replace an employee with new employee and to update the information of existing employee i.e. PUT
     @RequestMapping(value = "/employee/{empId}", method = RequestMethod.PUT)
-    public ResponseEntity addEmployee(@PathVariable("empId") int empId, @RequestBody EmployeePost employeePost){
+    public ResponseEntity updateOrReplaceEmployee(@PathVariable("empId") int empId, @RequestBody EmployeePost employeePost){
 
         //code to replace
         if(employeePost.isReplace()){
@@ -51,14 +61,6 @@ public class ControllerClass {
         else{
             return employeeServices.update(empId,employeePost);
         }
-
-    }
-
-    //method to add an employee to the organization
-    @PostMapping("/employee")
-    public ResponseEntity addEmployee(@RequestBody EmployeePost employeePost){
-
-        return employeeServices.addAnEmployee(employeePost);
 
     }
 
