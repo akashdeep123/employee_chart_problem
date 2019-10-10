@@ -3,25 +3,36 @@ package com.example.employee_chart_temp.Controller;
 public class EmployeePost {
     //private Integer empId=null;
 
-    private String empName=null;
+    private String employeeName=null;
     private Integer managerId=null;
-    private String designationName=null;
-    private boolean replace=false;
+    private String jobTitle=null;
+    //private boolean replace=false;
 
-    public boolean isReplace() {
-        return replace;
+    public EmployeePost(){
+
     }
 
-    public void setReplace(boolean replace) {
-        this.replace = replace;
+    public EmployeePost(String employeeName,String jobTitle,Integer managerId){
+        this.employeeName = employeeName;
+        this.jobTitle =jobTitle;
+        this.managerId = managerId;
     }
+
+
+//    public boolean isReplace() {
+//        return replace;
+//    }
+//
+//    public void setReplace(boolean replace) {
+//        this.replace = replace;
+//    }
 
     public String getEmpName() {
-        return empName;
+        return employeeName;
     }
 
     public void setEmpName(String empName) {
-        this.empName = empName;
+        this.employeeName = empName;
     }
 
 //    public Integer getEmpId() {
@@ -40,11 +51,11 @@ public class EmployeePost {
         this.managerId = managerId;
     }
 
-    public String getDesignationName() {
-        return designationName;
+    public String getJobTitle() {
+        return jobTitle;
     }
 
-    public void setDesignationName(String designationName) {
-        this.designationName = designationName;
+    public void setJobTitle(String jobTitle) {
+        this.jobTitle = jobTitle;
     }
 }

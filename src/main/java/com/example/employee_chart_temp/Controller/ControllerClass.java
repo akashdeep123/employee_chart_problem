@@ -22,13 +22,13 @@ public class ControllerClass {
     EmployeeServices employeeServices;
 
     //method to show all employees i.e GET(all)
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET,path = "/rest/employees")
     public ResponseEntity showAllEmployees(){
        return employeeServices.returnAllEmployee();
     }
 
     //method to show all the required information of a particular employee i.e. GET(id)
-    @GetMapping("/employee/{aid}")
+    @GetMapping("/rest/employees/{aid}")
     public ResponseEntity get(@PathVariable("aid") int aid){
 
         Map map = employeeServices.get(aid);
@@ -42,7 +42,7 @@ public class ControllerClass {
 
 
     //method to add an employee to the organization
-    @PostMapping("/employee")
+    @PostMapping("/rest/employees")
     public ResponseEntity addEmployee(@RequestBody EmployeePost employeePost){
 
         return employeeServices.addAnEmployee(employeePost);
@@ -50,22 +50,22 @@ public class ControllerClass {
     }
 
     //method to replace an employee with new employee and to update the information of existing employee i.e. PUT
-    @RequestMapping(value = "/employee/{empId}", method = RequestMethod.PUT)
-    public ResponseEntity updateOrReplaceEmployee(@PathVariable("empId") int empId, @RequestBody EmployeePost employeePost){
+    @RequestMapping(value = "/rest/employees/{empId}", method = RequestMethod.PUT)
+    public ResponseEntity updateOrReplaceEmployee(@PathVariable("empId") int empId, @RequestBody EmployeePut employeePut){
 
         //code to replace
-        if(employeePost.isReplace()){
-            return employeeServices.replace(empId,employeePost);
+        if(employeePut.isReplace()){
+            return employeeServices.replace(empId,employeePut);
         }
         //code to update the information of existing employee
         else{
-            return employeeServices.update(empId,employeePost);
+            return employeeServices.update(empId,employeePut);
         }
 
     }
 
     //method to delete an employee form the organization
-    @DeleteMapping("/employee/{empId}")
+    @DeleteMapping("/rest/employees/{empId}")
     public ResponseEntity deleteEmployee(@PathVariable("empId") int empId){
 
         return employeeServices.deleteAnEmployee(empId);

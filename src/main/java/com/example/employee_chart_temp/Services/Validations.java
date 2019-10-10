@@ -1,6 +1,7 @@
 package com.example.employee_chart_temp.Services;
 
 import com.example.employee_chart_temp.Controller.EmployeePost;
+import com.example.employee_chart_temp.Controller.EmployeePut;
 import com.example.employee_chart_temp.Entities.EmployeeInformation;
 import com.example.employee_chart_temp.Repositories.DesignationRepo;
 import com.example.employee_chart_temp.Repositories.EmployeeRepo;
@@ -50,7 +51,7 @@ public class Validations {
         return false;
     }
     public boolean isParentChildRelation(EmployeePost employeePost, int parId){
-        float levelOfNewEmp = empServices.returnLevel(employeePost.getDesignationName().trim());//designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()).getLevel();
+        float levelOfNewEmp = empServices.returnLevel(employeePost.getJobTitle().trim());//designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()).getLevel();
         //Integer managerId=employeeRepo.findByEmployeeId(parId).getManagerId();
         //String desgOfManager = designationRepo.findByDesignation(employeeRepo.findByEmployeeId(managerId).getDesignation());
         float levelOfManager = empServices.returnLevel(employeePost.getManagerId());//designationRepo.findByDesignationIgnoreCase(employeeRepo.findByEmployeeId(managerId).getDesignation()).getLevel();
@@ -68,6 +69,27 @@ public class Validations {
         }
         return false;
     }
+
+    public boolean isParentChildRelation(EmployeePut employeePut, int parId){
+        float levelOfNewEmp = empServices.returnLevel(employeePut.getJobTitle().trim());//designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()).getLevel();
+        //Integer managerId=employeeRepo.findByEmployeeId(parId).getManagerId();
+        //String desgOfManager = designationRepo.findByDesignation(employeeRepo.findByEmployeeId(managerId).getDesignation());
+        float levelOfManager = empServices.returnLevel(employeePut.getManagerId());//designationRepo.findByDesignationIgnoreCase(employeeRepo.findByEmployeeId(managerId).getDesignation()).getLevel();
+        if(levelOfManager < levelOfNewEmp){
+            List<EmployeeInformation> children =employeeRepo.findAllByManagerIdOrderByDesignationId_levelAsc(parId);
+            if(children.isEmpty()){
+                return true;
+            }
+            EmployeeInformation lastChild = children.get(0);
+            float levelOfLastChild = empServices.returnLevel(lastChild.getDesignation());//designationRepo.findByDesignationIgnoreCase(lastChild.getDesignation()).getLevel();
+            System.out.println(levelOfLastChild+"   "+levelOfNewEmp);
+            if(levelOfNewEmp < levelOfLastChild){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isParentChildRelation(EmployeeInformation emp, int parId){
         float levelOfNewEmp = empServices.returnLevel(emp.getDesignation().trim());//designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()).getLevel();
         //Integer managerId=employeeRepo.findByEmployeeId(parId).getManagerId();

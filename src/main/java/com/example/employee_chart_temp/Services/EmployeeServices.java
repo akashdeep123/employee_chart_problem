@@ -1,6 +1,7 @@
 package com.example.employee_chart_temp.Services;
 
 import com.example.employee_chart_temp.Controller.EmployeePost;
+import com.example.employee_chart_temp.Controller.EmployeePut;
 import com.example.employee_chart_temp.Entities.EmployeeInformation;
 import com.example.employee_chart_temp.Repositories.DesignationRepo;
 import com.example.employee_chart_temp.Repositories.EmployeeRepo;
@@ -70,7 +71,7 @@ public class EmployeeServices {
 
     }
 
-    public ResponseEntity replace(int empId, EmployeePost employeePost){
+    public ResponseEntity replace(int empId, EmployeePut employeePut){
         if(! validations.isEmpIdValid(empId)){
             return new ResponseEntity<>("employee not found",HttpStatus.BAD_REQUEST);
         }
@@ -80,29 +81,29 @@ public class EmployeeServices {
 
 
         //name, designation of the new employee must be provided
-        if(employeePost.getEmpName()==null || employeePost.getDesignationName()==null){
+        if(employeePut.getEmployeeName()==null || employeePut.getJobTitle()==null){
             return new ResponseEntity<>("incomplete information", HttpStatus.BAD_REQUEST);
         }
 
-        if(employeePost.getManagerId()==null){
-            employeePost.setManagerId(empToReplace.getManagerId());
+        if(employeePut.getManagerId()==null){
+            employeePut.setManagerId(empToReplace.getManagerId());
         }
-        if(!validations.isDesignationValid(employeePost.getDesignationName().trim().toLowerCase())){
+        if(!validations.isDesignationValid(employeePut.getJobTitle().trim().toLowerCase())){
             return new ResponseEntity<>("designation invalid",HttpStatus.BAD_REQUEST);
         }
 
         //if director is to be replaced
         if(employeeRepo.findByEmployeeId(empId).getDesignation().equalsIgnoreCase("director")){
-            if(!employeePost.getDesignationName().equalsIgnoreCase("director")){
+            if(!employeePut.getJobTitle().equalsIgnoreCase("director")){
                 return new ResponseEntity<>("director can;t be replaced with employee of lower designation",HttpStatus.BAD_REQUEST);
             }
 
-            emp.setEmployeeName(employeePost.getEmpName());
-            emp.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()));
+            emp.setEmployeeName(employeePut.getEmployeeName());
+            emp.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePut.getJobTitle()));
 
             employeeRepo.save(emp);
 
-            if(designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()).getLevel() == designationRepo.findByDesignationIgnoreCase(empToReplace.getDesignation()).getLevel() ){
+            if(designationRepo.findByDesignationIgnoreCase(employeePut.getJobTitle()).getLevel() == designationRepo.findByDesignationIgnoreCase(empToReplace.getDesignation()).getLevel() ){
 
                 employeeRepo.delete(empToReplace);
                 List<EmployeeInformation> children = employeeRepo.findAllByManagerId(empId);
@@ -118,14 +119,14 @@ public class EmployeeServices {
             }
 
         }
-        if(!validations.isEmpIdValid(employeePost.getManagerId())){
+        if(!validations.isEmpIdValid(employeePut.getManagerId())){
             return new ResponseEntity<>("manager not valid",HttpStatus.BAD_REQUEST);
         }
-        if(validations.isParentChildRelation(employeePost,empId)){
+        if(validations.isParentChildRelation(employeePut,empId)){
 
-            emp.setEmployeeName(employeePost.getEmpName());
-            emp.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()));
-            emp.setManagerId(employeePost.getManagerId());
+            emp.setEmployeeName(employeePut.getEmployeeName());
+            emp.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePut.getJobTitle()));
+            emp.setManagerId(employeePut.getManagerId());
 
             employeeRepo.delete(empToReplace);
             employeeRepo.save(emp);
@@ -143,44 +144,44 @@ public class EmployeeServices {
         return new ResponseEntity<>(emp,HttpStatus.OK);
     }
 
-    public ResponseEntity update(int empId, EmployeePost employeePost){
+    public ResponseEntity update(int empId, EmployeePut employeePut){
         if(! validations.isEmpIdValid(empId)){
-            return new ResponseEntity<>("employee not found",HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("employee not found",HttpStatus.NOT_FOUND);
         }
 
         EmployeeInformation empToUpdate = employeeRepo.findByEmployeeId(empId);
         //start
-        if(employeePost.getDesignationName()==null){
-            employeePost.setDesignationName(empToUpdate.getDesignation());
+        if(employeePut.getJobTitle()==null){
+            employeePut.setJobTitle(empToUpdate.getDesignation());
         }
-        if(employeePost.getManagerId()==null){
-            employeePost.setManagerId(empToUpdate.getManagerId());
+        if(employeePut.getManagerId()==null){
+            employeePut.setManagerId(empToUpdate.getManagerId());
         }
-        if(employeePost.getEmpName()==null){
-            employeePost.setEmpName(empToUpdate.getEmployeeName());
+        if(employeePut.getEmployeeName()==null){
+            employeePut.setEmployeeName(empToUpdate.getEmployeeName());
         }
-        if(!validations.isDesignationValid(employeePost.getDesignationName())){
+        if(!validations.isDesignationValid(employeePut.getJobTitle())){
             return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
         }
         //if employee to be updated is director
         if(employeeRepo.findByEmployeeId(empId).getDesignation().equalsIgnoreCase("director")){
-            if(!employeePost.getDesignationName().equalsIgnoreCase("director")){
+            if(!employeePut.getJobTitle().equalsIgnoreCase("director")){
                 return new ResponseEntity("bad request", HttpStatus.BAD_REQUEST);
             }
-            if(employeePost.getManagerId()!=null){
+            if(employeePut.getManagerId()!=null){
                 return new ResponseEntity("bad request", HttpStatus.BAD_REQUEST);
             }
-            empToUpdate.setEmployeeName(employeePost.getEmpName());
+            empToUpdate.setEmployeeName(employeePut.getEmployeeName());
             employeeRepo.save(empToUpdate);
             return new ResponseEntity(empToUpdate, HttpStatus.OK);
         }
-        if(!validations.isEmpIdValid(employeePost.getManagerId())){
+        if(!validations.isEmpIdValid(employeePut.getManagerId())){
             return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
         }
-        if(validations.isParentChildRelation(employeePost,empId)){
-            empToUpdate.setManagerId(employeePost.getManagerId());
-            empToUpdate.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()));
-            empToUpdate.setEmployeeName(employeePost.getEmpName());
+        if(validations.isParentChildRelation(employeePut,empId)){
+            empToUpdate.setManagerId(employeePut.getManagerId());
+            empToUpdate.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePut.getJobTitle()));
+            empToUpdate.setEmployeeName(employeePut.getEmployeeName());
             employeeRepo.save(empToUpdate);
             return new ResponseEntity<>(empToUpdate,HttpStatus.OK);
         }
@@ -193,17 +194,17 @@ public class EmployeeServices {
     }
 
     public ResponseEntity addAnEmployee(EmployeePost employeePost){
-        if(employeePost.getEmpName()==null || employeePost.getDesignationName()==null ){
+        if(employeePost.getEmpName()==null || employeePost.getJobTitle()==null ){
             return new ResponseEntity<>("please provide all data",HttpStatus.BAD_REQUEST);
         }
         EmployeeInformation empToAdd =new EmployeeInformation();
         //if there is no employee in the list, then first employee must be director
         if(employeeRepo.findAll().isEmpty()){
-            if(employeePost.getDesignationName().equalsIgnoreCase("Director")){
+            if(employeePost.getJobTitle().equalsIgnoreCase("Director")){
                 if(employeePost.getManagerId() == null)
                 {
                     empToAdd.setEmployeeName(employeePost.getEmpName());
-                    empToAdd.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()));
+                    empToAdd.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getJobTitle()));
                     employeeRepo.save(empToAdd);
                 }
                 else{
@@ -215,8 +216,11 @@ public class EmployeeServices {
             }
         }
         // name, designation, managerId of the new employee are required if employee to be added is not director.
-        else if(employeePost.getEmpName()!=null && employeePost.getDesignationName()!=null && employeePost.getManagerId()!=null && (!employeePost.getDesignationName().equalsIgnoreCase("director"))){
+        else if(employeePost.getEmpName()!=null && employeePost.getJobTitle()!=null && employeePost.getManagerId()!=null && (!employeePost.getJobTitle().equalsIgnoreCase("director"))){
                 //find employee to be manager
+            if(!validations.isEmpIdValid(employeePost.getManagerId())){
+                return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
+            }
                 EmployeeInformation temp = employeeRepo.findByEmployeeId(employeePost.getManagerId());
                 //if employee to be manager(of new employee) is intern, then return bad request
                 if(temp.designationId.getDesignation().equalsIgnoreCase("Intern")){
@@ -225,14 +229,14 @@ public class EmployeeServices {
                 //find level of manager
                 float levelOfManager = returnLevel(temp.designationId.getDesignation().trim());//designationRepo.findByDesignationIgnoreCase(temp.designationId.getDesignation().trim()).getLevel();
                 //find level of employee
-                float empLevel = returnLevel(employeePost.getDesignationName().trim());//designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName().trim()).getLevel();
+                float empLevel = returnLevel(employeePost.getJobTitle().trim());//designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName().trim()).getLevel();
                 if(levelOfManager >= empLevel){
                     return new ResponseEntity("bad request",HttpStatus.BAD_REQUEST);
                 }
                 else{
                     empToAdd.setEmployeeName(employeePost.getEmpName());
                     empToAdd.setManagerId(employeePost.getManagerId());
-                    empToAdd.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getDesignationName()));
+                    empToAdd.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getJobTitle()));
                     employeeRepo.save(empToAdd);
                 }
 
@@ -247,7 +251,7 @@ public class EmployeeServices {
 
     public ResponseEntity deleteAnEmployee(int empId){
         if(!validations.isEmpIdValid(empId)){
-            return new ResponseEntity<>("employee not found",HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("employee not found",HttpStatus.NOT_FOUND);
         }
         EmployeeInformation empToDelete = employeeRepo.findByEmployeeId(empId);
         //if employee to delete is director
