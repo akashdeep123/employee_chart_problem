@@ -27,11 +27,11 @@ public class EmployeePost {
 //        this.replace = replace;
 //    }
 
-    public String getEmpName() {
+    public String getEmployeeName() {
         return employeeName;
     }
 
-    public void setEmpName(String empName) {
+    public void setEmployeeName(String empName) {
         this.employeeName = empName;
     }
 

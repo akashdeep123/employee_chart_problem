@@ -81,6 +81,14 @@ public class EmployeeServices {
             return new ResponseEntity<>("employee not found",HttpStatus.BAD_REQUEST);
         }
 
+        if(employeePut.getJobTitle().trim().equals("")){
+            return new ResponseEntity("job title can not be blank", HttpStatus.BAD_REQUEST);
+        }
+
+        if(employeePut.getEmployeeName().trim().equals("")){
+            return new ResponseEntity("name of employee can not be blank",HttpStatus.BAD_REQUEST);
+        }
+
         EmployeeInformation emp = new EmployeeInformation();
         EmployeeInformation empToReplace = employeeRepo.findByEmployeeId(empId);
 
@@ -154,6 +162,14 @@ public class EmployeeServices {
             return new ResponseEntity<>("employee not found",HttpStatus.NOT_FOUND);
         }
 
+        if(employeePut.getJobTitle().trim().equals("")){
+            return new ResponseEntity("job title can not be blank", HttpStatus.BAD_REQUEST);
+        }
+
+        if(employeePut.getEmployeeName().trim().equals("")){
+            return new ResponseEntity("name of employee can not be blank",HttpStatus.BAD_REQUEST);
+        }
+
         EmployeeInformation empToUpdate = employeeRepo.findByEmployeeId(empId);
         //start
         if(employeePut.getJobTitle()==null){
@@ -199,16 +215,25 @@ public class EmployeeServices {
     }
 
     public ResponseEntity addAnEmployee(EmployeePost employeePost){
-        if(employeePost.getEmpName()==null || employeePost.getJobTitle()==null ){
+        if(employeePost.getEmployeeName()==null || employeePost.getJobTitle()==null ){
             return new ResponseEntity<>("please provide all data",HttpStatus.BAD_REQUEST);
         }
+
+        if(employeePost.getJobTitle().trim().equals("")){
+            return new ResponseEntity("job title can not be blank", HttpStatus.BAD_REQUEST);
+        }
+
+        if(employeePost.getEmployeeName().trim().equals("")){
+            return new ResponseEntity("name of employee can not be blank",HttpStatus.BAD_REQUEST);
+        }
+
         EmployeeInformation empToAdd =new EmployeeInformation();
         //if there is no employee in the list, then first employee must be director
         if(employeeRepo.findAll().isEmpty()){
             if(employeePost.getJobTitle().equalsIgnoreCase("Director")){
                 if(employeePost.getManagerId() == null)
                 {
-                    empToAdd.setEmployeeName(employeePost.getEmpName());
+                    empToAdd.setEmployeeName(employeePost.getEmployeeName());
                     empToAdd.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getJobTitle()));
                     employeeRepo.save(empToAdd);
                 }
@@ -221,7 +246,7 @@ public class EmployeeServices {
             }
         }
         // name, designation, managerId of the new employee are required if employee to be added is not director.
-        else if(employeePost.getEmpName()!=null && employeePost.getJobTitle()!=null && employeePost.getManagerId()!=null && (!employeePost.getJobTitle().equalsIgnoreCase("director"))){
+        else if(employeePost.getEmployeeName()!=null && employeePost.getJobTitle()!=null && employeePost.getManagerId()!=null && (!employeePost.getJobTitle().equalsIgnoreCase("director"))){
                 //find employee to be manager
             if(!validations.isEmpIdValid(employeePost.getManagerId())){
                 return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
@@ -239,7 +264,7 @@ public class EmployeeServices {
                     return new ResponseEntity("bad request",HttpStatus.BAD_REQUEST);
                 }
                 else{
-                    empToAdd.setEmployeeName(employeePost.getEmpName());
+                    empToAdd.setEmployeeName(employeePost.getEmployeeName());
                     empToAdd.setManagerId(employeePost.getManagerId());
                     empToAdd.setDesignationId(designationRepo.findByDesignationIgnoreCase(employeePost.getJobTitle()));
                     employeeRepo.save(empToAdd);

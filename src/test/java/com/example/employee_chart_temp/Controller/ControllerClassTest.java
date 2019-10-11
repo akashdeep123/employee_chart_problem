@@ -48,7 +48,7 @@ public class ControllerClassTest extends AbstractTransactionalTestNGSpringContex
         int length= JsonPath.parse(jsonOutput).read("$.length()");
         Assert.assertTrue(length>0);
     }
-    //*******************************************************Test for get Specific*******************************************************************
+    //*******************************************************Test for get with given id*********************************************************
     @Test(priority = 2)
     public void getUserTest() throws Exception
     {
@@ -71,8 +71,8 @@ public class ControllerClassTest extends AbstractTransactionalTestNGSpringContex
                 .andExpect(MockMvcResultMatchers.status().isBadRequest()).andDo(print()).andReturn();
     }
 
-    //************************************************test methods for put
-
+    //************************************************test methods for put**********************************************************************************
+    //************************************************replace = true cases**********************************************************************************
     @Test
     public void putEmpWithNoData() throws Exception
     {
@@ -138,7 +138,7 @@ public class ControllerClassTest extends AbstractTransactionalTestNGSpringContex
     }
 
 
-    ///////////////////////////////////////  putApi false /////////////////////////////////////
+    //************************************************replace = false cases**********************************************************************************
     @Test
     public void updateEmpInvalidId() throws Exception
     {
@@ -249,8 +249,10 @@ public class ControllerClassTest extends AbstractTransactionalTestNGSpringContex
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
     }
 
+    //************************************************Post method test cases**********************************************************************************
+
     @Test(priority = 0)
-    public void createEmployeeTest() throws Exception                //post is working or not
+    public void createEmployeeTest() throws Exception
     {
         EmployeePost employeePost = new EmployeePost("wanda","intern",2);
         //CrudeEmployee employeePost=new CrudeEmployee(2,"wonder woman","intern");
@@ -342,7 +344,8 @@ public class ControllerClassTest extends AbstractTransactionalTestNGSpringContex
                 .andExpect(MockMvcResultMatchers.status().isBadRequest()).andReturn();
     }
 
-    /*********************** test case for delete employee ********************/
+
+    //************************************************delete method test cases**********************************************************************************
 
     @Test
     public void delInvalidId () throws Exception                //Deleting non existing employee
@@ -412,12 +415,6 @@ public class ControllerClassTest extends AbstractTransactionalTestNGSpringContex
                 .andExpect(MockMvcResultMatchers.status().isBadRequest()).andReturn();
 
     }
-
-
-
-
-
-
 
 //    @Test
 //    public void testGet() throws Exception
