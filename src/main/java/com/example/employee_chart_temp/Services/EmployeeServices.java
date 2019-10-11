@@ -60,12 +60,17 @@ public class EmployeeServices {
             manager=employeeRepo.findByEmployeeId(employeeInformation.getManagerId());
             map.put("Manager",manager);
 
-            colleagues=employeeRepo.findAllByManagerIdAndEmployeeIdIsNot(employeeInformation.getManagerId(),employeeInformation.getEmployeeId());
-            map.put("Colleagues",colleagues);
+            //colleagues=employeeRepo.findAllByManagerIdAndEmployeeIdIsNot(employeeInformation.getManagerId(),employeeInformation.getEmployeeId());
+            colleagues=employeeRepo.findAllByManagerIdAndEmployeeIdIsNotOrderByDesignationId_levelAscEmployeeNameAsc(employeeInformation.getManagerId(),employeeInformation.getEmployeeId());
+            if(colleagues!=null)
+                map.put("Colleagues",colleagues);
         }
 
-        List<EmployeeInformation> reportingTo =employeeRepo.findAllByManagerIdAndEmployeeIdIsNot(employeeInformation.getEmployeeId(),employeeInformation.getEmployeeId());
-        map.put("ReportingTo",reportingTo);
+
+        //List<EmployeeInformation> reportingToo =employeeRepo.findAllByManagerIdAndEmployeeIdIsNot(employeeInformation.getEmployeeId(),employeeInformation.getEmployeeId());
+        List<EmployeeInformation> reportingToo = employeeRepo.findAllByManagerIdAndEmployeeIdIsNotOrderByDesignationId_levelAscEmployeeNameAsc(employeeInformation.getEmployeeId(),employeeInformation.getEmployeeId());
+        if(reportingToo!=null)
+            map.put("ReportingToo",reportingToo);
 
         return map;
 

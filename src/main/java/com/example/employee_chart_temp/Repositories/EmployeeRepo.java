@@ -12,6 +12,9 @@ public interface EmployeeRepo extends CrudRepository<EmployeeInformation, Intege
     EmployeeInformation findByEmployeeId(int id);
     List<EmployeeInformation> findAllByManagerId(int mid);
     List<EmployeeInformation> findAllByOrderByDesignationId_levelAscEmployeeNameAsc();
+
+    List<EmployeeInformation> findAllByManagerIdAndEmployeeIdIsNotOrderByDesignationId_levelAscEmployeeNameAsc(int parentId, int empId);
+
     List<EmployeeInformation> findAllByManagerIdAndEmployeeIdIsNot(int parentId,int empId);
     //List<EmployeeInformation> findAllByManagerIdOrderByDesignationId_levl
     List<EmployeeInformation> findAllByManagerIdOrderByDesignationId_levelAsc(int id);
