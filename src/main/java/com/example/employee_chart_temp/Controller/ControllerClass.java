@@ -3,6 +3,7 @@ package com.example.employee_chart_temp.Controller;
 import com.example.employee_chart_temp.Repositories.DesignationRepo;
 import com.example.employee_chart_temp.Repositories.EmployeeRepo;
 import com.example.employee_chart_temp.Services.EmployeeServices;
+import com.example.employee_chart_temp.Util.MessageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,8 @@ public class ControllerClass {
     DesignationRepo designationRepo;
     @Autowired
     EmployeeServices employeeServices;
+    @Autowired
+    MessageUtil messageUtil;
 
     //method to show all employees i.e GET(all)
     @RequestMapping(method = RequestMethod.GET,path = "/rest/employees")
@@ -33,33 +36,31 @@ public class ControllerClass {
 
         Map map = employeeServices.get(aid);
         if(map == null){
-            return new ResponseEntity("Employee record not found",HttpStatus.NOT_FOUND);
+            return new ResponseEntity(messageUtil.getMessage("EMPLOYEE_NOT_FOUND"),HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity(map,HttpStatus.OK);
 
     }
 
-
-
     //method to add an employee to the organization
     @PostMapping("/rest/employees")
-    public ResponseEntity addEmployee(@RequestBody EmployeePost employeePost){
+    public ResponseEntity addEmployee(@RequestBody EmployeeEntity employeeEntity){
 
-        return employeeServices.addAnEmployee(employeePost);
+        return employeeServices.addAnEmployee(employeeEntity);
 
     }
 
     //method to replace an employee with new employee and to update the information of existing employee i.e. PUT
     @RequestMapping(value = "/rest/employees/{empId}", method = RequestMethod.PUT)
-    public ResponseEntity updateOrReplaceEmployee(@PathVariable("empId") int empId, @RequestBody EmployeePut employeePut){
+    public ResponseEntity updateOrReplaceEmployee(@PathVariable("empId") int empId, @RequestBody EmployeeEntity EmployeeEntity){
 
         //code to replace
-        if(employeePut.isReplace()){
-            return employeeServices.replace(empId,employeePut);
+        if(EmployeeEntity.isReplace()){
+            return employeeServices.replace(empId,EmployeeEntity);
         }
         //code to update the information of existing employee
         else{
-            return employeeServices.update(empId,employeePut);
+            return employeeServices.update(empId,EmployeeEntity);
         }
 
     }

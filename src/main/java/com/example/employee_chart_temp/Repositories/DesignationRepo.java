@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DesignationRepo extends CrudRepository<DesignationInformation, Integer> {
     DesignationInformation findByDesignationIgnoreCase(String Designation);
-    DesignationInformation findByDesignationId(String did);
+    DesignationInformation findBydesignationInformation(String did);
 
 }

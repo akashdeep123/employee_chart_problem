@@ -11,18 +11,18 @@ public class DesignationInformation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int designationId;
+    private int designationInformation;
 
     private String designation;
 
     private float level;
 
-    public int getDesignationId() {
-        return designationId;
+    public int getdesignationInformation() {
+        return designationInformation;
     }
 
-    public void setDesignationId(int designationId) {
-        this.designationId = designationId;
+    public void setdesignationInformation(int designationInformation) {
+        this.designationInformation = designationInformation;
     }
 
     public String getDesignation() {

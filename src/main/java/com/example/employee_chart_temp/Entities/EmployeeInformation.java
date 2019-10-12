@@ -20,13 +20,13 @@ public class EmployeeInformation {
     private String Designation;
 
     public String getDesignation() {
-        return this.designationId.getDesignation();
+        return this.designationInformation.getDesignation();
     }
 
     @OneToOne
     @JoinColumn(name = "designation_id")
     @JsonIgnore
-    public DesignationInformation designationId;
+    public DesignationInformation designationInformation;
 
     @Nullable
     private Integer managerId;
@@ -47,12 +47,12 @@ public class EmployeeInformation {
         this.employeeName = employeeName;
     }
 
-    public DesignationInformation getDesignationId() {
-        return designationId;
+    public DesignationInformation getdesignationInformation() {
+        return designationInformation;
     }
 
-    public void setDesignationId(DesignationInformation designationId) {
-        this.designationId = designationId;
+    public void setdesignationInformation(DesignationInformation designationInformation) {
+        this.designationInformation = designationInformation;
     }
 
     public Integer getManagerId() {
