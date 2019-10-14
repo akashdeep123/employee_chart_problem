@@ -3,9 +3,9 @@ package com.example.employee_chart_temp.Controller;
 public class EmployeeEntity {
     //private Integer empId=null;
 
-    private String employeeName=null;
-    private Integer managerId=null;
-    private String jobTitle=null;
+    private String name=null;
+    private Integer managerId =null;
+    private String jobTitle =null;
     private boolean replace=false;
 
     public EmployeeEntity(){
@@ -13,14 +13,14 @@ public class EmployeeEntity {
     }
 
     public EmployeeEntity(String employeeName, String jobTitle, Integer managerId){
-        this.employeeName = employeeName;
+        this.name = employeeName;
         this.jobTitle =jobTitle;
         this.managerId = managerId;
     }
 
     public EmployeeEntity(String employeeName, String jobTitle, Integer managerId, boolean replace){
         this.replace = replace;
-        this.employeeName = employeeName;
+        this.name = employeeName;
         this.jobTitle =jobTitle;
         this.managerId = managerId;
     }
@@ -33,12 +33,12 @@ public class EmployeeEntity {
         this.replace = replace;
     }
 
-    public String getEmployeeName() {
-        return employeeName;
+    public String getName() {
+        return name;
     }
 
-    public void setEmployeeName(String empName) {
-        this.employeeName = empName;
+    public void setName(String empName) {
+        this.name = empName;
     }
 
 //    public Integer getEmpId() {

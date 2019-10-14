@@ -34,6 +34,9 @@ public class ControllerClass {
     @GetMapping("/rest/employees/{aid}")
     public ResponseEntity get(@PathVariable("aid") int aid){
 
+        if(aid<0){
+            return new ResponseEntity<>(messageUtil.getMessage("EMPLOYEE_NOT_FOUND"),HttpStatus.BAD_REQUEST);
+        }
         Map map = employeeServices.get(aid);
         if(map == null){
             return new ResponseEntity(messageUtil.getMessage("EMPLOYEE_NOT_FOUND"),HttpStatus.NOT_FOUND);

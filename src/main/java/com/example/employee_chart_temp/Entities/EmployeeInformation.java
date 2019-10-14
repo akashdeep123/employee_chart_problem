@@ -1,6 +1,7 @@
 package com.example.employee_chart_temp.Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
@@ -11,13 +12,16 @@ public class EmployeeInformation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("id")
     private int employeeId;
 
+    @JsonProperty("name")
     private String employeeName;
 
 
     @Transient
-    private String Designation;
+    @JsonProperty("jobTitle")
+    //private String Designation;
 
     public String getDesignation() {
         return this.designationInformation.getDesignation();
@@ -25,10 +29,12 @@ public class EmployeeInformation {
 
     @OneToOne
     @JoinColumn(name = "designation_id")
+
     @JsonIgnore
     public DesignationInformation designationInformation;
 
     @Nullable
+    @JsonProperty("manager")
     private Integer managerId;
 
     public int getEmployeeId() {

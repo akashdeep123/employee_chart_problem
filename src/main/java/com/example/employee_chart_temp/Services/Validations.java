@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class Validations {
@@ -17,6 +19,17 @@ public class Validations {
     DesignationRepo designationRepo;
     @Autowired
     EmployeeServices empServices;
+
+
+        public boolean validateLetters(String txt) {
+
+//            String regx = "[a-zA-Z]+\\.?";
+            String regx = "^[\\p{L} .'-]+$";
+            Pattern pattern = Pattern.compile(regx,Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(txt);
+            return matcher.find();
+
+        }
 
     public boolean isEmpIdValid(int empId){
         if(employeeRepo.findByEmployeeId(empId)!=null){ //if employee id exists.

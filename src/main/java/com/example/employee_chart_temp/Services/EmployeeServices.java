@@ -1,6 +1,7 @@
 package com.example.employee_chart_temp.Services;
 
 import com.example.employee_chart_temp.Controller.EmployeeEntity;
+import com.example.employee_chart_temp.Entities.DesignationInformation;
 import com.example.employee_chart_temp.Entities.EmployeeInformation;
 import com.example.employee_chart_temp.Repositories.DesignationRepo;
 import com.example.employee_chart_temp.Repositories.EmployeeRepo;
@@ -48,6 +49,7 @@ public class EmployeeServices {
 
     public Map get(int aid){
         //if user enters invalid employee id
+
         if(! validations.isEmpIdValid(aid)){
             return null;
         }
@@ -56,29 +58,30 @@ public class EmployeeServices {
         EmployeeInformation manager=null;
 
         EmployeeInformation employeeInformation=employeeRepo.findByEmployeeId(aid);
-        map.put("Employee",employeeInformation);
+        map.put("employee",employeeInformation);
 
         if(employeeInformation.getManagerId()!=null){
             manager=employeeRepo.findByEmployeeId(employeeInformation.getManagerId());
-            map.put("Manager",manager);
+            map.put("manager",manager);
 
             //colleagues=employeeRepo.findAllByManagerIdAndEmployeeIdIsNot(employeeInformation.getManagerId(),employeeInformation.getEmployeeId());
             colleagues=employeeRepo.findAllByManagerIdAndEmployeeIdIsNotOrderByDesignationInformation_levelAscEmployeeNameAsc(employeeInformation.getManagerId(),employeeInformation.getEmployeeId());
             if(colleagues!=null)
-                map.put("Colleagues",colleagues);
+                map.put("colleagues",colleagues);
         }
 
 
         //List<EmployeeInformation> reportingToo =employeeRepo.findAllByManagerIdAndEmployeeIdIsNot(employeeInformation.getEmployeeId(),employeeInformation.getEmployeeId());
         List<EmployeeInformation> reportingToo = employeeRepo.findAllByManagerIdAndEmployeeIdIsNotOrderByDesignationInformation_levelAscEmployeeNameAsc(employeeInformation.getEmployeeId(),employeeInformation.getEmployeeId());
         if(reportingToo!=null)
-            map.put("ReportingToo",reportingToo);
+            map.put("subordinates",reportingToo);
 
         return map;
 
     }
 
     public ResponseEntity replace(int empId, EmployeeEntity employeeEntity){
+
         if(! validations.isEmpIdValid(empId)){
             return new ResponseEntity<>(messageUtil.getMessage("EMPLOYEE_NOT_FOUND"),HttpStatus.BAD_REQUEST);
         }
@@ -87,7 +90,7 @@ public class EmployeeServices {
             return new ResponseEntity(messageUtil.getMessage("JOB_TITLE_BLANK"), HttpStatus.BAD_REQUEST);
         }
 
-        if(employeeEntity.getEmployeeName().trim().equals("")){
+        if(employeeEntity.getName().trim().equals("")){
             return new ResponseEntity(messageUtil.getMessage("EMPLOYEE_NAME_BLANK"),HttpStatus.BAD_REQUEST);
         }
 
@@ -96,13 +99,22 @@ public class EmployeeServices {
 
 
         //name, designation of the new employee must be provided
-        if(employeeEntity.getEmployeeName()==null || employeeEntity.getJobTitle()==null){
+        if(employeeEntity.getName()==null || employeeEntity.getJobTitle()==null){
             return new ResponseEntity<>(messageUtil.getMessage("INCOMPLETE_INFORMATION"), HttpStatus.BAD_REQUEST);
         }
+
+        if (!validations.validateLetters(employeeEntity.getName())){
+            return new ResponseEntity(messageUtil.getMessage("INVALID_NAME"),HttpStatus.BAD_REQUEST);
+        }
+
+
 
         if(employeeEntity.getManagerId()==null){
             employeeEntity.setManagerId(empToReplace.getManagerId());
         }
+//        if(employeeEntity.getManagerId()==-1){
+//            employeeEntity.setManagerId(null);
+//        }
         if(!validations.isDesignationValid(employeeEntity.getJobTitle().trim().toLowerCase())){
             return new ResponseEntity<>(messageUtil.getMessage("INVALID_DESIGNATION"),HttpStatus.BAD_REQUEST);
         }
@@ -113,7 +125,7 @@ public class EmployeeServices {
                 return new ResponseEntity<>("director can't be replaced with employee of lower designation",HttpStatus.BAD_REQUEST);
             }
 
-            emp.setEmployeeName(employeeEntity.getEmployeeName());
+            emp.setEmployeeName(employeeEntity.getName());
             emp.setdesignationInformation(designationRepo.findByDesignationIgnoreCase(employeeEntity.getJobTitle()));
 
             employeeRepo.save(emp);
@@ -126,7 +138,7 @@ public class EmployeeServices {
                     em.setManagerId(emp.getEmployeeId());
                     employeeRepo.save(em);
                 }
-                return new ResponseEntity<>(emp,HttpStatus.OK);
+                return new ResponseEntity<>(get(emp.getEmployeeId()),HttpStatus.OK);
             }
             else {
                 employeeRepo.delete(emp);
@@ -139,7 +151,7 @@ public class EmployeeServices {
         }
         if(validations.isParentChildRelation(employeeEntity,empId)){
 
-            emp.setEmployeeName(employeeEntity.getEmployeeName());
+            emp.setEmployeeName(employeeEntity.getName());
             emp.setdesignationInformation(designationRepo.findByDesignationIgnoreCase(employeeEntity.getJobTitle()));
             emp.setManagerId(employeeEntity.getManagerId());
 
@@ -156,12 +168,18 @@ public class EmployeeServices {
             return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(emp,HttpStatus.OK);
+        return new ResponseEntity<>(get(emp.getEmployeeId()),HttpStatus.OK);
     }
 
-    public ResponseEntity update(int empId, EmployeeEntity EmployeeEntity){
+    public ResponseEntity update(int empId, EmployeeEntity employeeEntity){
+        if(employeeEntity.getManagerId()==null && employeeEntity.getJobTitle()==null && employeeEntity.getName()==null){
+            return new ResponseEntity<>(messageUtil.getMessage("INCOMPLETE_INFORMATION"),HttpStatus.BAD_REQUEST);
+        }
+        if(employeeEntity.getManagerId()!=null && employeeEntity.getManagerId()==-1){
+            employeeEntity.setManagerId(null);
+        }
         if(! validations.isEmpIdValid(empId)){
-            return new ResponseEntity<>(messageUtil.getMessage("EMPLOYEE_NOT_FOUND"),HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(messageUtil.getMessage("EMPLOYEE_NOT_FOUND"),HttpStatus.BAD_REQUEST);
         }
 //
 //        if(EmployeeEntity.getJobTitle().trim().equals("")){
@@ -174,39 +192,42 @@ public class EmployeeServices {
 
         EmployeeInformation empToUpdate = employeeRepo.findByEmployeeId(empId);
         //start
-        if(EmployeeEntity.getJobTitle()==null){
-            EmployeeEntity.setJobTitle(empToUpdate.getDesignation());
+        if(employeeEntity.getJobTitle()==null){
+            employeeEntity.setJobTitle(empToUpdate.getDesignation());
         }
-        if(EmployeeEntity.getManagerId()==null){
-            EmployeeEntity.setManagerId(empToUpdate.getManagerId());
+        if(employeeEntity.getManagerId()==null){
+            employeeEntity.setManagerId(empToUpdate.getManagerId());
         }
-        if(EmployeeEntity.getEmployeeName()==null){
-            EmployeeEntity.setEmployeeName(empToUpdate.getEmployeeName());
+        if(employeeEntity.getName()==null){
+            employeeEntity.setName(empToUpdate.getEmployeeName());
         }
-        if(!validations.isDesignationValid(EmployeeEntity.getJobTitle())){
+        if(!validations.validateLetters(employeeEntity.getName())){
+            return new ResponseEntity<>(messageUtil.getMessage("INVALID_NAME"),HttpStatus.BAD_REQUEST);
+        }
+        if(!validations.isDesignationValid(employeeEntity.getJobTitle())){
             return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
         }
         //if employee to be updated is director
         if(employeeRepo.findByEmployeeId(empId).getDesignation().equalsIgnoreCase("director")){
-            if(!EmployeeEntity.getJobTitle().equalsIgnoreCase("director")){
+            if(!employeeEntity.getJobTitle().equalsIgnoreCase("director")){
                 return new ResponseEntity("bad request", HttpStatus.BAD_REQUEST);
             }
-            if(EmployeeEntity.getManagerId()!=null){
+            if(employeeEntity.getManagerId()!=null){
                 return new ResponseEntity("bad request", HttpStatus.BAD_REQUEST);
             }
-            empToUpdate.setEmployeeName(EmployeeEntity.getEmployeeName());
+            empToUpdate.setEmployeeName(employeeEntity.getName());
             employeeRepo.save(empToUpdate);
-            return new ResponseEntity(empToUpdate, HttpStatus.OK);
+            return new ResponseEntity(get(empToUpdate.getEmployeeId()), HttpStatus.OK);
         }
-        if(!validations.isEmpIdValid(EmployeeEntity.getManagerId())){
+        if(!validations.isEmpIdValid(employeeEntity.getManagerId())){
             return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
         }
-        if(validations.isParentChildRelation(EmployeeEntity,empId)){
-            empToUpdate.setManagerId(EmployeeEntity.getManagerId());
-            empToUpdate.setdesignationInformation(designationRepo.findByDesignationIgnoreCase(EmployeeEntity.getJobTitle()));
-            empToUpdate.setEmployeeName(EmployeeEntity.getEmployeeName());
+        if(validations.isParentChildRelation(employeeEntity,empId)){
+            empToUpdate.setManagerId(employeeEntity.getManagerId());
+            empToUpdate.setdesignationInformation(designationRepo.findByDesignationIgnoreCase(employeeEntity.getJobTitle()));
+            empToUpdate.setEmployeeName(employeeEntity.getName());
             employeeRepo.save(empToUpdate);
-            return new ResponseEntity<>(empToUpdate,HttpStatus.OK);
+            return new ResponseEntity<>(get(empToUpdate.getEmployeeId()),HttpStatus.OK);
         }
         else{
             return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
@@ -217,15 +238,37 @@ public class EmployeeServices {
     }
 
     public ResponseEntity addAnEmployee(EmployeeEntity employeeEntity){
-        if(employeeEntity.getEmployeeName()==null || employeeEntity.getJobTitle()==null ){
+
+        if(employeeEntity.getName()==null || employeeEntity.getJobTitle()==null ){
             return new ResponseEntity<>(messageUtil.getMessage("INCOMPLETE_INFORMATION"),HttpStatus.BAD_REQUEST);
+        }
+
+        String desgEmployeeEntity = employeeEntity.getJobTitle();
+        if(designationRepo.findByDesignationIgnoreCase(desgEmployeeEntity)==null){
+            return new ResponseEntity<>(messageUtil.getMessage("INVALID_DESIGNATION"),HttpStatus.BAD_REQUEST);
+        }
+
+        String nameEmployeeEntity = employeeEntity.getName();
+        if(!validations.validateLetters(nameEmployeeEntity)){
+            return new ResponseEntity<>(messageUtil.getMessage("INVALID_NAME"),HttpStatus.BAD_REQUEST);
+        }
+
+
+        if(!employeeEntity.getJobTitle().equalsIgnoreCase("director")){
+            if(employeeEntity.getManagerId()==null){
+                return new ResponseEntity<>(messageUtil.getMessage("MANAGER_ID_BLANK"),HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        if(employeeEntity.getManagerId()==-1){
+            employeeEntity.setManagerId(null);
         }
 
         if(employeeEntity.getJobTitle().trim().equals("")){
             return new ResponseEntity(messageUtil.getMessage("JOB_TITLE_BLANK"), HttpStatus.BAD_REQUEST);
         }
 
-        if(employeeEntity.getEmployeeName().trim().equals("")){
+        if(employeeEntity.getName().trim().equals("")){
             return new ResponseEntity(messageUtil.getMessage("EMPLOYEE_NAME_BLANK"),HttpStatus.BAD_REQUEST);
         }
 
@@ -235,12 +278,12 @@ public class EmployeeServices {
             if(employeeEntity.getJobTitle().equalsIgnoreCase("Director")){
                 if(employeeEntity.getManagerId() == null)
                 {
-                    empToAdd.setEmployeeName(employeeEntity.getEmployeeName());
+                    empToAdd.setEmployeeName(employeeEntity.getName());
                     empToAdd.setdesignationInformation(designationRepo.findByDesignationIgnoreCase(employeeEntity.getJobTitle()));
                     employeeRepo.save(empToAdd);
                 }
                 else{
-                    return new ResponseEntity<>(employeeEntity, HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>(employeeRepo.findByEmployeeId(empToAdd.getEmployeeId()), HttpStatus.BAD_REQUEST);
                 }
             }
             else {
@@ -248,7 +291,7 @@ public class EmployeeServices {
             }
         }
         // name, designation, managerId of the new employee are required if employee to be added is not director.
-        else if(employeeEntity.getEmployeeName()!=null && employeeEntity.getJobTitle()!=null && employeeEntity.getManagerId()!=null && (!employeeEntity.getJobTitle().equalsIgnoreCase("director"))){
+        else if(employeeEntity.getName()!=null && employeeEntity.getJobTitle()!=null && employeeEntity.getManagerId()!=null && (!employeeEntity.getJobTitle().equalsIgnoreCase("director"))){
                 //find employee to be manager
             if(!validations.isEmpIdValid(employeeEntity.getManagerId())){
                 return new ResponseEntity<>("invalid request",HttpStatus.BAD_REQUEST);
@@ -266,7 +309,7 @@ public class EmployeeServices {
                     return new ResponseEntity("bad request",HttpStatus.BAD_REQUEST);
                 }
                 else{
-                    empToAdd.setEmployeeName(employeeEntity.getEmployeeName());
+                    empToAdd.setEmployeeName(employeeEntity.getName());
                     empToAdd.setManagerId(employeeEntity.getManagerId());
                     empToAdd.setdesignationInformation(designationRepo.findByDesignationIgnoreCase(employeeEntity.getJobTitle()));
                     employeeRepo.save(empToAdd);
@@ -277,11 +320,14 @@ public class EmployeeServices {
             return new ResponseEntity<>("Invalid information",HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(empToAdd,HttpStatus.OK);
+        return new ResponseEntity<>(employeeRepo.findByEmployeeId(empToAdd.getEmployeeId()),HttpStatus.CREATED);
 
     }
 
     public ResponseEntity deleteAnEmployee(int empId){
+        if (empId<0){
+            return new ResponseEntity<>(messageUtil.getMessage("INVALID_ID"),HttpStatus.BAD_REQUEST);
+        }
         if(!validations.isEmpIdValid(empId)){
             return new ResponseEntity<>(messageUtil.getMessage("EMPLOYEE_NOT_FOUND"),HttpStatus.NOT_FOUND);
         }
@@ -308,7 +354,7 @@ public class EmployeeServices {
                 employeeRepo.save(updateChild);
             }
             employeeRepo.delete(empToDelete);
-            return new ResponseEntity<>(empToDelete,HttpStatus.OK);
+            return new ResponseEntity<>(empToDelete,HttpStatus.NO_CONTENT);
         }
 
     }

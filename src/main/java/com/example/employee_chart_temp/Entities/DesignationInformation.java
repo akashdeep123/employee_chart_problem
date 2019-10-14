@@ -1,6 +1,7 @@
 package com.example.employee_chart_temp.Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import sun.security.krb5.internal.crypto.Des;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ public class DesignationInformation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int designationInformation;
 
+    @JsonProperty("jobTitle")
     private String designation;
 
     private float level;
